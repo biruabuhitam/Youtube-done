@@ -3,264 +3,717 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YT Downloader Pro - Unduh Video YouTube</title>
+    <title>StreamSave Pro - YouTube Downloader</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #020617;
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
         }
+
         .glass-card {
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(51, 65, 85, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
         }
-        .loader {
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top: 3px solid #ef4444;
+
+        .glow-button {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glow-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .glow-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(45deg);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+
+        .glow-button:hover::after {
+            left: 100%;
+        }
+
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+
+        .input-focus:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .video-thumbnail {
+            aspect-ratio: 16/9;
+            background-size: cover;
+            background-position: center;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .custom-loader {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            border: 3px solid transparent;
+            border-top-color: #3b82f6;
             animation: spin 1s linear infinite;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
-        .fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
+
+        /* Hover Effect for Cards */
+        .option-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .option-card:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            transform: scale(1.02);
         }
-        .hidden { display: none; }
+
+        .option-card.active {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+        }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen p-4 md:p-8">
-    <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <header class="text-center mb-12 mt-8">
-            <div class="flex items-center justify-center gap-3 mb-4">
-                <div class="bg-red-600 p-2.5 rounded-2xl shadow-lg shadow-red-900/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 2-2 10 10 0 0 1 15 0 2 2 0 0 1 2 2 24.12 24.12 0 0 1 0 10 2 2 0 0 1-2 2 10 10 0 0 1-15 0 2 2 0 0 1-2-2Z"/><path d="m10 15 5-3-5-3z"/></svg>
-                </div>
-                <h1 class="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-                    YT Downloader Pro
-                </h1>
-            </div>
-            <p class="text-slate-400 max-w-md mx-auto">Konversi dan unduh video YouTube ke format MP4 atau MP3 dengan kualitas terbaik secara instan.</p>
-        </header>
+<body class="flex items-center justify-center p-4 md:p-8">
 
-        <!-- Search Section -->
-        <div class="glass-card p-6 rounded-3xl shadow-2xl mb-10">
-            <div class="flex flex-col md:flex-row gap-4">
-                <div class="relative flex-1">
-                    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                    </div>
-                    <input 
-                        type="text" 
-                        id="youtubeUrl"
-                        placeholder="Tempel link YouTube di sini (contoh: https://youtube.com/...)" 
-                        class="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-red-500 transition-all outline-none text-slate-200 placeholder:text-slate-500"
-                    >
-                </div>
+    <div class="max-w-4xl w-full">
+        <!-- Header -->
+        <div class="text-center mb-10 space-y-2">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                    StreamSave Pro
+                </span>
+            </h1>
+            <p class="text-gray-400 font-light">Unduh video YouTube favorit Anda dengan kualitas tinggi secara gratis.</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="glass-card p-6 md:p-10 shadow-2xl">
+            <!-- URL Input Area -->
+            <div class="relative group">
+                <input 
+                    type="text" 
+                    id="videoUrl"
+                    placeholder="Tempel link YouTube di sini (e.g. https://youtube.com/watch?...)" 
+                    class="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 pr-32 outline-none input-focus text-lg transition-all"
+                >
                 <button 
                     onclick="analyzeVideo()"
-                    id="btnAnalyze"
-                    class="bg-red-600 hover:bg-red-500 active:scale-95 text-white font-semibold px-8 py-4 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-900/20"
+                    class="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-xl font-bold glow-button flex items-center gap-2"
                 >
-                    <span id="btnText">Analisis</span>
-                    <div id="btnLoader" class="loader hidden"></div>
+                    <i class="fas fa-search"></i>
+                    <span class="hidden sm:inline">Analisis</span>
                 </button>
             </div>
-            <p id="errorMessage" class="mt-4 text-red-400 text-sm hidden flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Harap masukkan URL YouTube yang valid.
-            </p>
+
+            <!-- Error Message Box -->
+            <div id="errorMessage" class="hidden mt-4 bg-red-500/20 border border-red-500/50 text-red-200 p-4 rounded-xl flex items-center gap-3">
+                <i class="fas fa-exclamation-circle text-xl"></i>
+                <p id="errorText"></p>
+            </div>
+
+            <!-- Result Section (Initially Hidden) -->
+            <div id="resultSection" class="hidden mt-10 animate-[fadeIn_0.5s_ease-out]">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Thumbnail Side -->
+                    <div>
+                        <div id="thumbnail" class="video-thumbnail mb-4 relative group cursor-pointer">
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded-xl">
+                                <i class="fas fa-play-circle text-6xl text-white"></i>
+                            </div>
+                        </div>
+                        <h2 id="videoTitle" class="text-xl font-bold line-clamp-2">Judul Video YouTube Akan Muncul Di Sini</h2>
+                        <div class="flex items-center gap-4 mt-3 text-sm text-gray-400">
+                            <span id="videoDuration"><i class="far fa-clock mr-2"></i>--:--</span>
+                            <span id="videoViews"><i class="far fa-eye mr-2"></i>-- kali ditonton</span>
+                        </div>
+                    </div>
+
+                    <!-- Options Side -->
+                    <div class="space-y-4">
+                        <p class="font-semibold text-gray-300">Pilih Kualitas & Format:</p>
+                        
+                        <div class="grid grid-cols-1 gap-3">
+                            <!-- MP4 1080p -->
+                            <div class="option-card p-4 rounded-xl border border-white/10 flex justify-between items-center active" onclick="selectOption(this, '1080p')">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-file-video"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold">MP4 1080p</p>
+                                        <p class="text-xs text-gray-400">Full HD • ~24.5 MB</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-green-500 text-white px-2 py-0.5 rounded">Terbaik</span>
+                            </div>
+
+                            <!-- MP4 720p -->
+                            <div class="option-card p-4 rounded-xl border border-white/10 flex justify-between items-center" onclick="selectOption(this, '720p')">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-file-video"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold">MP4 720p</p>
+                                        <p class="text-xs text-gray-400">HD • ~12.1 MB</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MP3 -->
+                            <div class="option-card p-4 rounded-xl border border-white/10 flex justify-between items-center" onclick="selectOption(this, 'mp3')">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-music"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold">MP3 Audio</p>
+                                        <p class="text-xs text-gray-400">320kbps • ~4.5 MB</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button 
+                            onclick="startDownload()"
+                            class="w-full mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-4 rounded-2xl font-bold text-lg glow-button flex items-center justify-center gap-3"
+                        >
+                            <i class="fas fa-download"></i>
+                            Download Sekarang
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay" class="hidden mt-10 py-10 flex flex-col items-center justify-center space-y-4">
+                <div class="custom-loader"></div>
+                <p class="text-blue-400 font-medium animate-pulse">Menganalisis video...</p>
+            </div>
+
+            <!-- Download Progress -->
+            <div id="progressContainer" class="hidden mt-10 p-6 bg-white/5 rounded-2xl border border-white/10">
+                <div class="flex justify-between items-center mb-4">
+                    <span id="progressText" class="font-semibold">Mengunduh...</span>
+                    <span id="progressPercent" class="text-blue-400">0%</span>
+                </div>
+                <div class="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                    <div id="progressBar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+                <p class="text-xs text-gray-400 mt-3 text-center italic">Jangan tutup halaman ini sampai proses selesai.</p>
+            </div>
+
+            <!-- Success State -->
+            <div id="successMessage" class="hidden mt-10 text-center py-6 space-y-4">
+                <div class="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto text-4xl">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h3 class="text-2xl font-bold">Download Selesai!</h3>
+                <p class="text-gray-400">File Anda telah berhasil diproses dan disimpan.</p>
+                <button onclick="resetApp()" class="text-blue-400 hover:underline">Download video lain</button>
+            </div>
         </div>
 
-        <!-- Result Section -->
-        <div id="resultSection" class="grid md:grid-cols-2 gap-8 hidden fade-in">
-            <!-- Video Info -->
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-                <div class="relative aspect-video group">
-                    <img id="videoThumb" src="" alt="Thumbnail" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
-                    <div id="videoDuration" class="absolute bottom-3 right-3 bg-black/80 px-2 py-1 rounded text-xs font-bold backdrop-blur-md border border-white/10">
-                        00:00
-                    </div>
-                </div>
-                <div class="p-6">
-                    <h2 id="videoTitle" class="text-xl font-bold mb-3 line-clamp-2 leading-tight">Judul Video Muncul di Sini</h2>
-                    <div class="flex items-center gap-2 text-slate-400 text-sm">
-                        <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                        <span id="videoAuthor">Nama Channel</span>
-                    </div>
-                </div>
+        <!-- Footer Info -->
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div class="p-4 rounded-2xl bg-white/5">
+                <i class="fas fa-bolt text-yellow-400 text-2xl mb-2"></i>
+                <h4 class="font-bold">Cepat</h4>
+                <p class="text-xs text-gray-400">Pemrosesan kilat dengan server berkecepatan tinggi.</p>
             </div>
-
-            <!-- Download Options -->
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
-                <h3 class="text-lg font-semibold mb-6 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                    Pilih Format Unduhan
-                </h3>
-
-                <div id="downloadContainer" class="space-y-3">
-                    <!-- Format Buttons will be injected here -->
-                </div>
-
-                <!-- Progress Bar -->
-                <div id="progressArea" class="hidden py-8 space-y-4">
-                    <div class="flex justify-between text-sm mb-1">
-                        <span class="text-slate-400">Mengunduh ke server...</span>
-                        <span id="progressPercent" class="font-bold text-red-500">0%</span>
-                    </div>
-                    <div class="h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
-                        <div id="progressBar" class="h-full bg-gradient-to-r from-red-600 to-rose-400 transition-all duration-300 w-0"></div>
-                    </div>
-                    <p class="text-[10px] text-slate-500 text-center uppercase tracking-widest">Jangan tutup tab ini</p>
-                </div>
+            <div class="p-4 rounded-2xl bg-white/5">
+                <i class="fas fa-shield-alt text-green-400 text-2xl mb-2"></i>
+                <h4 class="font-bold">Aman</h4>
+                <p class="text-xs text-gray-400">Bebas dari iklan mengganggu dan virus berbahaya.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-white/5">
+                <i class="fas fa-infinity text-blue-400 text-2xl mb-2"></i>
+                <h4 class="font-bold">Tak Terbatas</h4>
+                <p class="text-xs text-gray-400">Unduh video sebanyak yang Anda inginkan secara gratis.</p>
             </div>
         </div>
-
-        <!-- Empty State / Features -->
-        <div id="featuresGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div class="p-8 glass-card rounded-3xl border-slate-800/50 hover:border-red-500/30 transition-colors group">
-                <div class="bg-green-500/10 w-12 h-12 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </div>
-                <h4 class="font-bold text-lg mb-2">100% Aman</h4>
-                <p class="text-sm text-slate-500 leading-relaxed">Tanpa virus, malware, atau iklan pop-up. Privasi Anda adalah prioritas utama kami.</p>
-            </div>
-            <div class="p-8 glass-card rounded-3xl border-slate-800/50 hover:border-red-500/30 transition-colors group">
-                <div class="bg-blue-500/10 w-12 h-12 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
-                </div>
-                <h4 class="font-bold text-lg mb-2">Kualitas HD</h4>
-                <p class="text-sm text-slate-500 leading-relaxed">Unduh dalam resolusi 720p, 1080p, hingga 4K jika tersedia di sumber aslinya.</p>
-            </div>
-            <div class="p-8 glass-card rounded-3xl border-slate-800/50 hover:border-red-500/30 transition-colors group">
-                <div class="bg-purple-500/10 w-12 h-12 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                </div>
-                <h4 class="font-bold text-lg mb-2">MP3 Audio</h4>
-                <p class="text-sm text-slate-500 leading-relaxed">Konversi video musik favorit Anda menjadi file audio berkualitas tinggi secara instan.</p>
-            </div>
-        </div>
-
-        <footer class="mt-24 pb-8 text-center text-slate-600 text-sm">
-            <p>© 2024 YT Downloader Pro Interface. Gunakan secara bijak sesuai hak cipta.</p>
-        </footer>
+        
+        <p class="text-center text-gray-500 text-sm mt-10">© 2024 StreamSave Pro. Dibuat dengan cinta untuk para penonton.</p>
     </div>
 
     <script>
-        const formats = [
-            { quality: '1080p', ext: 'mp4', size: '124 MB', type: 'video' },
-            { quality: '720p', ext: 'mp4', size: '65 MB', type: 'video' },
-            { quality: '480p', ext: 'mp4', size: '32 MB', type: 'video' },
-            { quality: 'Audio MP3', ext: 'mp3', size: '12 MB', type: 'audio' }
-        ];
+        let selectedQuality = '1080p';
 
         function analyzeVideo() {
-            const url = document.getElementById('youtubeUrl').value;
-            const btnText = document.getElementById('btnText');
-            const btnLoader = document.getElementById('btnLoader');
-            const errorMsg = document.getElementById('errorMessage');
-            const resultSection = document.getElementById('resultSection');
-            const featuresGrid = document.getElementById('featuresGrid');
+            const urlInput = document.getElementById('videoUrl').value;
+            const errorBox = document.getElementById('errorMessage');
+            const loader = document.getElementById('loadingOverlay');
+            const result = document.getElementById('resultSection');
 
-            if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
-                errorMsg.classList.remove('hidden');
+            // Reset States
+            errorBox.classList.add('hidden');
+            result.classList.add('hidden');
+            document.getElementById('progressContainer').classList.add('hidden');
+            document.getElementById('successMessage').classList.add('hidden');
+
+            if (!urlInput.includes('youtube.com') && !urlInput.includes('youtu.be')) {
+                showError("Mohon masukkan link YouTube yang valid.");
                 return;
             }
 
-            errorMsg.classList.add('hidden');
-            btnText.classList.add('hidden');
-            btnLoader.classList.remove('hidden');
+            loader.classList.remove('hidden');
 
             // Simulasi proses analisis API
             setTimeout(() => {
-                btnText.classList.remove('hidden');
-                btnLoader.classList.add('hidden');
+                loader.classList.add('hidden');
+                result.classList.remove('hidden');
                 
-                // Isi data simulasi
-                document.getElementById('videoThumb').src = "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&auto=format&fit=crop&q=60";
-                document.getElementById('videoTitle').innerText = "Cara Membuat Aplikasi Web Modern 2024";
-                document.getElementById('videoAuthor').innerText = "Tech Master Indonesia";
-                document.getElementById('videoDuration').innerText = "15:20";
-
-                renderFormats();
-                
-                resultSection.classList.remove('hidden');
-                featuresGrid.classList.add('hidden');
-                
-                // Scroll ke hasil
-                resultSection.scrollIntoView({ behavior: 'smooth' });
+                // Mengisi data palsu (Mock Data)
+                document.getElementById('videoTitle').innerText = "Marvel Studios' Avengers: Secret Wars | Official Concept Trailer";
+                document.getElementById('videoDuration').innerHTML = "<i class='far fa-clock mr-2'></i>3:45";
+                document.getElementById('videoViews').innerHTML = "<i class='far fa-eye mr-2'></i>1.2M ditonton";
+                document.getElementById('thumbnail').style.backgroundImage = "url('https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=2070&auto=format&fit=crop')";
             }, 1500);
         }
 
-        function renderFormats() {
-            const container = document.getElementById('downloadContainer');
-            container.innerHTML = '';
-            
-            formats.forEach(f => {
-                const btn = document.createElement('button');
-                btn.className = "w-full flex items-center justify-between p-4 bg-slate-800/40 hover:bg-slate-800 border border-slate-700 hover:border-red-500/50 rounded-2xl transition-all group active:scale-[0.98]";
-                btn.onclick = () => startDownload(f.quality);
-                
-                const icon = f.type === 'video' 
-                    ? `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`
-                    : `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-400"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
-
-                btn.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-slate-900 rounded-lg">${icon}</div>
-                        <div class="text-left">
-                            <p class="font-bold text-slate-100">${f.quality}</p>
-                            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">${f.ext}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span class="text-xs font-semibold text-slate-400">${f.size}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500 group-hover:text-red-500 transition-colors"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    </div>
-                `;
-                container.appendChild(btn);
+        function selectOption(element, quality) {
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('active');
             });
+            element.classList.add('active');
+            selectedQuality = quality;
         }
 
-        function startDownload(quality) {
-            const container = document.getElementById('downloadContainer');
-            const progressArea = document.getElementById('progressArea');
+        function startDownload() {
+            document.getElementById('resultSection').classList.add('hidden');
+            const progressContainer = document.getElementById('progressContainer');
             const progressBar = document.getElementById('progressBar');
             const progressPercent = document.getElementById('progressPercent');
-
-            container.classList.add('hidden');
-            progressArea.classList.remove('hidden');
-
-            let progress = 0;
+            const progressText = document.getElementById('progressText');
+            
+            progressContainer.classList.remove('hidden');
+            
+            let width = 0;
             const interval = setInterval(() => {
-                progress += Math.floor(Math.random() * 10) + 2;
-                if (progress >= 100) {
-                    progress = 100;
+                if (width >= 100) {
                     clearInterval(interval);
+                    showSuccess();
+                } else {
+                    width += Math.random() * 5;
+                    if (width > 100) width = 100;
+                    progressBar.style.width = width + '%';
+                    progressPercent.innerText = Math.floor(width) + '%';
                     
-                    setTimeout(() => {
-                        alert(`Simulasi: Berhasil mengunduh kualitas ${quality}! (Gunakan Python Backend untuk pengunduhan nyata)`);
-                        progressArea.classList.add('hidden');
-                        container.classList.remove('hidden');
-                        progressBar.style.width = '0%';
-                        progressPercent.innerText = '0%';
-                    }, 500);
+                    if (width < 30) progressText.innerText = "Menginisialisasi...";
+                    else if (width < 70) progressText.innerText = `Mengonversi ke ${selectedQuality.toUpperCase()}...`;
+                    else progressText.innerText = "Hampir selesai...";
                 }
-                progressBar.style.width = `${progress}%`;
-                progressPercent.innerText = `${progress}%`;
-            }, 150);
+            }, 200);
         }
+
+        function showSuccess() {
+            document.getElementById('progressContainer').classList.add('hidden');
+            document.getElementById('successMessage').classList.remove('hidden');
+        }
+
+        function showError(msg) {
+            const errorBox = document.getElementById('errorMessage');
+            document.getElementById('errorText').innerText = msg;
+            errorBox.classList.remove('hidden');
+        }
+
+        function resetApp() {
+            document.getElementById('videoUrl').value = "";
+            document.getElementById('successMessage').classList.add('hidden');
+            document.getElementById('resultSection').classList.add('hidden');
+        }
+
+        // Fitur tambahan: Paste otomatis dari clipboard saat fokus (opsional)
+        window.addEventListener('focus', async () => {
+            // Logika paste otomatis bisa ditambahkan di sini dengan izin navigator.clipboard
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamSave Pro - YouTube Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+        }
+
+        .glow-button {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glow-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .glow-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(45deg);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+
+        .glow-button:hover::after {
+            left: 100%;
+        }
+
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+
+        .input-focus:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .video-thumbnail {
+            aspect-ratio: 16/9;
+            background-size: cover;
+            background-position: center;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .custom-loader {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #3b82f6;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Hover Effect for Cards */
+        .option-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .option-card:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            transform: scale(1.02);
+        }
+
+        .option-card.active {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 md:p-8">
+
+    <div class="max-w-4xl w-full">
+        <!-- Header -->
+        <div class="text-center mb-10 space-y-2">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                    StreamSave Pro
+                </span>
+            </h1>
+            <p class="text-gray-400 font-light">Unduh video YouTube favorit Anda dengan kualitas tinggi secara gratis.</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="glass-card p-6 md:p-10 shadow-2xl">
+            <!-- URL Input Area -->
+            <div class="relative group">
+                <input 
+                    type="text" 
+                    id="videoUrl"
+                    placeholder="Tempel link YouTube di sini (e.g. https://youtube.com/watch?...)" 
+                    class="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 pr-32 outline-none input-focus text-lg transition-all"
+                >
+                <button 
+                    onclick="analyzeVideo()"
+                    class="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-xl font-bold glow-button flex items-center gap-2"
+                >
+                    <i class="fas fa-search"></i>
+                    <span class="hidden sm:inline">Analisis</span>
+                </button>
+            </div>
+
+            <!-- Error Message Box -->
+            <div id="errorMessage" class="hidden mt-4 bg-red-500/20 border border-red-500/50 text-red-200 p-4 rounded-xl flex items-center gap-3">
+                <i class="fas fa-exclamation-circle text-xl"></i>
+                <p id="errorText"></p>
+            </div>
+
+            <!-- Result Section (Initially Hidden) -->
+            <div id="resultSection" class="hidden mt-10 animate-[fadeIn_0.5s_ease-out]">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Thumbnail Side -->
+                    <div>
+                        <div id="thumbnail" class="video-thumbnail mb-4 relative group cursor-pointer">
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded-xl">
+                                <i class="fas fa-play-circle text-6xl text-white"></i>
+                            </div>
+                        </div>
+                        <h2 id="videoTitle" class="text-xl font-bold line-clamp-2">Judul Video YouTube Akan Muncul Di Sini</h2>
+                        <div class="flex items-center gap-4 mt-3 text-sm text-gray-400">
+                            <span id="videoDuration"><i class="far fa-clock mr-2"></i>--:--</span>
+                            <span id="videoViews"><i class="far fa-eye mr-2"></i>-- kali ditonton</span>
+                        </div>
+                    </div>
+
+                    <!-- Options Side -->
+                    <div class="space-y-4">
+                        <p class="font-semibold text-gray-300">Pilih Kualitas & Format:</p>
+                        
+                        <div class="grid grid-cols-1 gap-3">
+                            <!-- MP4 1080p -->
+                            <div class="option-card p-4 rounded-xl border border-white/10 flex justify-between items-center active" onclick="selectOption(this, '1080p')">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-file-video"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold">MP4 1080p</p>
+                                        <p class="text-xs text-gray-400">Full HD • ~24.5 MB</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-green-500 text-white px-2 py-0.5 rounded">Terbaik</span>
+                            </div>
+
+                            <!-- MP4 720p -->
+                            <div class="option-card p-4 rounded-xl border border-white/10 flex justify-between items-center" onclick="selectOption(this, '720p')">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-file-video"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold">MP4 720p</p>
+                                        <p class="text-xs text-gray-400">HD • ~12.1 MB</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MP3 -->
+                            <div class="option-card p-4 rounded-xl border border-white/10 flex justify-between items-center" onclick="selectOption(this, 'mp3')">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-purple-500/20 text-purple-400 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-music"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold">MP3 Audio</p>
+                                        <p class="text-xs text-gray-400">320kbps • ~4.5 MB</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button 
+                            onclick="startDownload()"
+                            class="w-full mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-4 rounded-2xl font-bold text-lg glow-button flex items-center justify-center gap-3"
+                        >
+                            <i class="fas fa-download"></i>
+                            Download Sekarang
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay" class="hidden mt-10 py-10 flex flex-col items-center justify-center space-y-4">
+                <div class="custom-loader"></div>
+                <p class="text-blue-400 font-medium animate-pulse">Menganalisis video...</p>
+            </div>
+
+            <!-- Download Progress -->
+            <div id="progressContainer" class="hidden mt-10 p-6 bg-white/5 rounded-2xl border border-white/10">
+                <div class="flex justify-between items-center mb-4">
+                    <span id="progressText" class="font-semibold">Mengunduh...</span>
+                    <span id="progressPercent" class="text-blue-400">0%</span>
+                </div>
+                <div class="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                    <div id="progressBar" class="bg-blue-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+                <p class="text-xs text-gray-400 mt-3 text-center italic">Jangan tutup halaman ini sampai proses selesai.</p>
+            </div>
+
+            <!-- Success State -->
+            <div id="successMessage" class="hidden mt-10 text-center py-6 space-y-4">
+                <div class="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto text-4xl">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h3 class="text-2xl font-bold">Download Selesai!</h3>
+                <p class="text-gray-400">File Anda telah berhasil diproses dan disimpan.</p>
+                <button onclick="resetApp()" class="text-blue-400 hover:underline">Download video lain</button>
+            </div>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div class="p-4 rounded-2xl bg-white/5">
+                <i class="fas fa-bolt text-yellow-400 text-2xl mb-2"></i>
+                <h4 class="font-bold">Cepat</h4>
+                <p class="text-xs text-gray-400">Pemrosesan kilat dengan server berkecepatan tinggi.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-white/5">
+                <i class="fas fa-shield-alt text-green-400 text-2xl mb-2"></i>
+                <h4 class="font-bold">Aman</h4>
+                <p class="text-xs text-gray-400">Bebas dari iklan mengganggu dan virus berbahaya.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-white/5">
+                <i class="fas fa-infinity text-blue-400 text-2xl mb-2"></i>
+                <h4 class="font-bold">Tak Terbatas</h4>
+                <p class="text-xs text-gray-400">Unduh video sebanyak yang Anda inginkan secara gratis.</p>
+            </div>
+        </div>
+        
+        <p class="text-center text-gray-500 text-sm mt-10">© 2024 StreamSave Pro. Dibuat dengan cinta untuk para penonton.</p>
+    </div>
+
+    <script>
+        let selectedQuality = '1080p';
+
+        function analyzeVideo() {
+            const urlInput = document.getElementById('videoUrl').value;
+            const errorBox = document.getElementById('errorMessage');
+            const loader = document.getElementById('loadingOverlay');
+            const result = document.getElementById('resultSection');
+
+            // Reset States
+            errorBox.classList.add('hidden');
+            result.classList.add('hidden');
+            document.getElementById('progressContainer').classList.add('hidden');
+            document.getElementById('successMessage').classList.add('hidden');
+
+            if (!urlInput.includes('youtube.com') && !urlInput.includes('youtu.be')) {
+                showError("Mohon masukkan link YouTube yang valid.");
+                return;
+            }
+
+            loader.classList.remove('hidden');
+
+            // Simulasi proses analisis API
+            setTimeout(() => {
+                loader.classList.add('hidden');
+                result.classList.remove('hidden');
+                
+                // Mengisi data palsu (Mock Data)
+                document.getElementById('videoTitle').innerText = "Marvel Studios' Avengers: Secret Wars | Official Concept Trailer";
+                document.getElementById('videoDuration').innerHTML = "<i class='far fa-clock mr-2'></i>3:45";
+                document.getElementById('videoViews').innerHTML = "<i class='far fa-eye mr-2'></i>1.2M ditonton";
+                document.getElementById('thumbnail').style.backgroundImage = "url('https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=2070&auto=format&fit=crop')";
+            }, 1500);
+        }
+
+        function selectOption(element, quality) {
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            element.classList.add('active');
+            selectedQuality = quality;
+        }
+
+        function startDownload() {
+            document.getElementById('resultSection').classList.add('hidden');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressText = document.getElementById('progressText');
+            
+            progressContainer.classList.remove('hidden');
+            
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                    showSuccess();
+                } else {
+                    width += Math.random() * 5;
+                    if (width > 100) width = 100;
+                    progressBar.style.width = width + '%';
+                    progressPercent.innerText = Math.floor(width) + '%';
+                    
+                    if (width < 30) progressText.innerText = "Menginisialisasi...";
+                    else if (width < 70) progressText.innerText = `Mengonversi ke ${selectedQuality.toUpperCase()}...`;
+                    else progressText.innerText = "Hampir selesai...";
+                }
+            }, 200);
+        }
+
+        function showSuccess() {
+            document.getElementById('progressContainer').classList.add('hidden');
+            document.getElementById('successMessage').classList.remove('hidden');
+        }
+
+        function showError(msg) {
+            const errorBox = document.getElementById('errorMessage');
+            document.getElementById('errorText').innerText = msg;
+            errorBox.classList.remove('hidden');
+        }
+
+        function resetApp() {
+            document.getElementById('videoUrl').value = "";
+            document.getElementById('successMessage').classList.add('hidden');
+            document.getElementById('resultSection').classList.add('hidden');
+        }
+
+        // Fitur tambahan: Paste otomatis dari clipboard saat fokus (opsional)
+        window.addEventListener('focus', async () => {
+            // Logika paste otomatis bisa ditambahkan di sini dengan izin navigator.clipboard
+        });
     </script>
 </body>
 </html>
